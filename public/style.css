@@ -1,0 +1,53 @@
+html,
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #222222;
+  color: #f2f2f2;
+}
+
+.container {
+  width: 1200px;
+  margin: 0 auto;
+  margin-top: 55px;
+}
+
+.logo {
+  text-align: center;
+}
+
+.logo h1 {
+  font-size: 64px;
+}
+
+.chart {
+  font-size: 14px;
+  width: 1200px;
+  height: 320px;
+}
+
+.wall-of-shame {
+  padding-top: 25px;
+  width: 100%;
+}
+
+table {
+  width: 100%;
+}
+
+table,
+th,
+td {
+  height: 30px;
+  border-collapse: collapse;
+  border: 1px solid #444;
+  text-align: center;
+}
+
+td,
+th {
+  padding: 6px;
+}
+
+.text-center {
+  text-align: center;
+}

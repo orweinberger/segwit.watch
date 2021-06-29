@@ -1,0 +1,113 @@
+<html>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;400;500;700;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/dark.js"></script>
+
+<link rel="stylesheet" href="style.css">
+
+<body>
+  <div class="container">
+    <div class="logo">
+      <h1>SEGWIT.WATCH</h1>
+      <h3>Block space is scarce, native Segregated Witness usage reduces transaction size and saves fees for the user.<br>The chart below calculates the % of end-to-end Native SegWit transactions only (ins: bech32, outs: bech32)</h3>
+    </div>
+    <div id="chart" class="chart">
+
+    </div>
+    <div class="wall-of-shame">
+      <h3 class="text-center">Wall of Shame</h3>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Defaults to Bech32</th>
+          <th>Defaults to P2SH-P2WPKH</th>
+        </tr>
+        <tr>
+          <td>Binance</td>
+          <td>Exchange</td>
+          <td>❌</td>
+          <td>❌</td>
+        </tr>
+        <tr>
+          <td>ShapeShift</td>
+          <td>Wallet</td>
+          <td>❌</td>
+          <td>✅</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    am4core.ready(function() {
+
+      // Themes begin
+      am4core.useTheme(am4themes_animated);
+      am4core.useTheme(am4themes_dark);
+      // Themes end
+
+      var chart = am4core.create("chart", am4charts.XYChart);
+
+      chart.data = <%-data %>
+
+      chart.dateFormatter.inputDateFormat = "i";
+      var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+      dateAxis.renderer.minGridDistance = 60;
+      dateAxis.startLocation = 0.5;
+      dateAxis.endLocation = 0.5;
+      dateAxis.baseInterval = {
+        timeUnit: "minute",
+        count: 1
+      }
+
+      var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+      valueAxis.title.text = "Percent";
+      valueAxis.calculateTotals = true;
+      valueAxis.min = 0;
+      valueAxis.max = 100;
+      valueAxis.strictMinMax = true;
+      valueAxis.renderer.labels.template.adapter.add("text", function(text) {
+        return text + "%";
+      });
+
+      var series2 = chart.series.push(new am4charts.LineSeries());
+      series2.name = "Native Segwit Transactions";
+      series2.dataFields.dateX = "time";
+      series2.dataFields.valueY = "segwit_txs_pct";
+      series2.dataFields.valueYShow = "totalPercent";
+      series2.sequencedInterpolation = true;
+      series2.fillOpacity = 0.6;
+      series2.stacked = true;
+      series2.strokeWidth = 2;
+
+      var series = chart.series.push(new am4charts.LineSeries());
+      series.dataFields.dateX = "time";
+      series.name = "All transactions";
+      series.dataFields.valueY = "total_txs_pct";
+      series.dataFields.valueYShow = "totalPercent";
+      series.fillOpacity = 0.6;
+      series.strokeWidth = 2;
+      series.stacked = true;
+
+
+      chart.cursor = new am4charts.XYCursor();
+      chart.cursor.xAxis = dateAxis;
+
+      // Add a legend
+      chart.legend = new am4charts.Legend();
+      chart.legend.position = "bottom";
+    }); // end am4core.ready()
+  </script>
+
+
+
+</body>
+
+</html>
