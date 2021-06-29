@@ -39,6 +39,8 @@ async function sync() {
     for (i = last + 1; i <= count; i++) {
       let blockHash = await getBlockHash(client, i);
       let block = await analyzeBlock(blockHash);
+      //Ignore empty blocks
+      if (block.total_txs > 1)
       results.push(block);
     }
     try {
@@ -85,7 +87,7 @@ async function analyzeBlock(hash) {
       segwit_txs++;
     }
   }
-  return { time: new Date(block.time * 1000).toISOString(), height: block.height, hash, total_txs, segwit_txs, segwit_txs_pct: Math.floor(segwit_txs/total_txs*100), total_txs_pct: 100 }
+  return { time: new Date(block.time * 1000).toISOString(), segwit_txs_pct: Math.floor(segwit_txs/total_txs*100), total_txs_pct: 100 }
 }
 setInterval(function() {
   if (!syncing)
