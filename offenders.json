@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Binance",
+    "type": "Exchange",
+    "native": false,
+    "wrapped": false
+  },
+  {
+    "name": "ShapeShift",
+    "type": "Wallet",
+    "native": false,
+    "wrapped": true
+  }
+]

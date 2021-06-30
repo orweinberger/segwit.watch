@@ -1,47 +1,69 @@
+const HTTP_PORT = process.env.HTTP_PORT || 3000;
+const BITCOIN_USERNAME = process.env.BITCOIN_USERNAME || 'test';
+const BITCOIN_PASSWORD = process.env.BITCOIN_PASSWORD || 'test';
+const BITCOIN_PORT = process.env.BITCOIN_PORT || 8332;
+const BITCOIN_HOST = process.env.BITCOIN_HOST || 'localhost';
+
 const Client = require('bitcoin-core');
 const level = require('level')
-const client = new Client({ network: 'testnet'});
 const { getBlockHash, getBlock, getBlockCount } = require('./lib/blocks');
 const { getTransaction } = require('./lib/transactions');
+const express = require('express');
+const fs = require('fs');
+
+const offenders = JSON.parse(fs.readFileSync('./offenders.json', 'utf-8'))
 
 //leveldb
 const db = level('data');
 let syncing = false;
 
 //Express
-let express = require('express');
 let app = express();
 app.use(express.static('public'))
 app.set('view engine', 'ejs');
 app.get('/', async (req, res) => {
-  let data = await db.get('data');
-  res.render('index', { data });
+  try {
+    let data = await db.get('data');
+    res.render('index', { data, offenders });
+  }
+  catch (x) {
+    res.render('index', { data: [], offenders });
+  }
 });
 
+const client = new Client({
+  username: BITCOIN_USERNAME,
+  password: BITCOIN_PASSWORD,
+  port: BITCOIN_PORT,
+  host: BITCOIN_HOST
+});
+
+const log = function(message) {
+  console.log(`${new Date().toISOString()} ${message}`)
+}
 
 async function sync() {
   syncing = true;
-  console.log(`Started sync ${new Date().toISOString()}`);
+  log('Started sync');
   let count = await getBlockCount(client);
   let prev, prev_json;
-  console.log('got count', count);
-  let last = count - 3;
+  let last = count - 1;
   try {
     last = parseInt(await db.get('last'));
   }
   catch (x) {
-    console.log('First run');
+    log('First run');
   }
   let results = [];
   if (last < count) {
-    console.log('updating last to', count);
+    log('updating last to', count);
     await db.put('last', count);
     for (i = last + 1; i <= count; i++) {
       let blockHash = await getBlockHash(client, i);
       let block = await analyzeBlock(blockHash);
       //Ignore empty blocks
       if (block.total_txs > 1)
-      results.push(block);
+        results.push(block);
     }
     try {
       prev = await db.get('data');
@@ -53,11 +75,11 @@ async function sync() {
     await db.put('data', JSON.stringify([...prev_json, ...results]));
   }
   syncing = false;
-  console.log(`Finished sync ${new Date().toISOString()}`);
+  log('Finished sync');
 }
 
 async function analyzeBlock(hash) {
-  console.log(`Working on ${hash}`)
+  log(`Working on ${hash}`)
   let block = await getBlock(client, hash);
   let txs = block.tx;
   let total_txs = txs.length;
@@ -87,11 +109,18 @@ async function analyzeBlock(hash) {
       segwit_txs++;
     }
   }
-  return { time: new Date(block.time * 1000).toISOString(), segwit_txs_pct: Math.floor(segwit_txs/total_txs*100), total_txs_pct: 100 }
+  return {
+    time: new Date(block.time * 1000).toISOString(),
+    segwit_txs_pct: Math.floor(segwit_txs / total_txs * 100),
+    total_txs,
+    total_txs_pct: 100
+  }
 }
 setInterval(function() {
   if (!syncing)
     sync();
-}, 30000);
+}, 60000);
+
 sync();
-app.listen(3000, () => console.log('Example app listening on port 3000!'));
+
+app.listen(HTTP_PORT, () => log('Started HTTP server'));
