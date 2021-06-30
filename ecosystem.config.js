@@ -5,7 +5,8 @@ module.exports = {
     env_production: {
       BITCOIN_USERNAME: "",
       BITCOIN_PASSWORD: "",
-      BITCOIN_HOST: ""
+      BITCOIN_HOST: "",
+      SYNC_BLOCKS: 2016
     }
   }]
 }

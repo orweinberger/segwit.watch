@@ -3,6 +3,7 @@ const BITCOIN_USERNAME = process.env.BITCOIN_USERNAME || 'test';
 const BITCOIN_PASSWORD = process.env.BITCOIN_PASSWORD || 'test';
 const BITCOIN_PORT = process.env.BITCOIN_PORT || 8332;
 const BITCOIN_HOST = process.env.BITCOIN_HOST || 'localhost';
+const SYNC_BLOCKS = process.env.SYNC_BLOCKS || 2016;
 
 const Client = require('bitcoin-core');
 const level = require('level')
@@ -47,7 +48,7 @@ async function sync() {
   log('Started sync');
   let count = await getBlockCount(client);
   let prev, prev_json;
-  let last = count - 1;
+  let last = count - SYNC_BLOCKS;
   try {
     last = parseInt(await db.get('last'));
   }
