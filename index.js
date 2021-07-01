@@ -79,6 +79,7 @@ async function sync() {
   log('Finished sync');
 }
 
+
 async function analyzeBlock(hash) {
   log(`Working on ${hash}`)
   let block = await getBlock(client, hash);
@@ -96,14 +97,14 @@ async function analyzeBlock(hash) {
 
     if (segwit === true) {
       for (vin of tx.vin) {
-        input = await getTransaction(client, vin.txid);
-        input.vout.forEach((vout) => {
-          if (vout.n === vin.vout) {
-            if (vout.scriptPubKey.type != 'witness_v0_keyhash' && vout.scriptPubKey.type != 'witness_v0_scripthash') {
-              segwit = false;
-            }
-          }
-        })
+        //Not segwit
+        if (!vin.txinwitness) {
+          segwit = false;
+        }
+        //P2SH with witness, but not native
+        else if (vin.txinwitness && vin.scriptSig.asm != '') {
+          segwit = false;
+        }
       }
     }
     if (segwit === true) {
